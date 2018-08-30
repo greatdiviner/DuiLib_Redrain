@@ -24,17 +24,17 @@ typedef struct tagTListInfoUI
     RECT rcTextPadding;
     DWORD dwTextColor;
     DWORD dwBkColor;
-    CDuiString sBkImage;
+	CImageAttribute bkImage;
     bool bAlternateBk;
     DWORD dwSelectedTextColor;
     DWORD dwSelectedBkColor;
-    CDuiString sSelectedImage;
+	CImageAttribute selectedImage;
     DWORD dwHotTextColor;
     DWORD dwHotBkColor;
-    CDuiString sHotImage;
+	CImageAttribute hotImage;
     DWORD dwDisabledTextColor;
     DWORD dwDisabledBkColor;
-    CDuiString sDisabledImage;
+    CImageAttribute disabledImage;
     DWORD dwLineColor;
     bool bShowHtml;
     bool bMultiExpandable;
@@ -124,6 +124,8 @@ public:
     void EnsureVisible(int iIndex);
     void Scroll(int dx, int dy);
 
+	bool IsDelayedDestroy() const;
+	void SetDelayedDestroy(bool bDelayed);
     int GetChildPadding() const;
     void SetChildPadding(int iPadding);
 
@@ -201,6 +203,7 @@ protected:
     CListBodyUI* m_pList;
     CListHeaderUI* m_pHeader;
     TListInfoUI m_ListInfo;
+
 };
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -233,10 +236,19 @@ class UILIB_API CListHeaderUI : public CHorizontalLayoutUI
 public:
     CListHeaderUI();
 
-    LPCTSTR GetClass() const;
-    LPVOID GetInterface(LPCTSTR pstrName);
+	LPCTSTR GetClass() const;
+	LPVOID GetInterface(LPCTSTR pstrName);
 
-    SIZE EstimateSize(SIZE szAvailable);
+	SIZE EstimateSize(SIZE szAvailable);
+	//开启百分比表头功能 redrain 2014.12.29
+	void SetPos(RECT rc);
+	void SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue);
+
+	void SetScaleHeader(bool bIsScale);
+	bool IsScaleHeader() const;
+
+private:
+	bool m_bIsScaleHeader;
 };
 
 
@@ -267,16 +279,12 @@ public:
     void SetFont(int index);
     bool IsShowHtml();
     void SetShowHtml(bool bShowHtml = true);
-    LPCTSTR GetNormalImage() const;
-    void SetNormalImage(LPCTSTR pStrImage);
-    LPCTSTR GetHotImage() const;
-    void SetHotImage(LPCTSTR pStrImage);
-    LPCTSTR GetPushedImage() const;
-    void SetPushedImage(LPCTSTR pStrImage);
-    LPCTSTR GetFocusedImage() const;
-    void SetFocusedImage(LPCTSTR pStrImage);
+
     LPCTSTR GetSepImage() const;
     void SetSepImage(LPCTSTR pStrImage);
+	//开启百分比表头功能,百分比 redrain 2014.12.29
+	void SetScale(int nScale);
+	int GetScale() const;
 
     void DoEvent(TEventUI& event);
     SIZE EstimateSize(SIZE szAvailable);
@@ -296,12 +304,8 @@ protected:
     UINT m_uTextStyle;
     bool m_bShowHtml;
 	RECT m_rcTextPadding;
-    CDuiString m_sNormalImage;
-    CDuiString m_sHotImage;
-    CDuiString m_sPushedImage;
-    CDuiString m_sFocusedImage;
-    CDuiString m_sSepImage;
-    CDuiString m_sSepImageModify;
+	CImageAttribute m_sepImage;
+	int m_nScale;
 };
 
 
@@ -443,7 +447,6 @@ protected:
     UINT m_uButtonState;
     IListOwnerUI* m_pOwner;
 
-	int m_nOldCxPos;  //add by Redrain 2014.10.30
 };
 
 } // namespace DuiLib

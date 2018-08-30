@@ -34,6 +34,7 @@ public:
     int GetFont();
     void SetFont(int index);
     void SetFont(LPCTSTR pStrFontName, int nSize, bool bBold, bool bUnderline, bool bItalic);
+	void SetEnabled(bool bEnabled);
     LONG GetWinStyle();
     void SetWinStyle(LONG lStyle);
     DWORD GetTextColor();
@@ -124,17 +125,14 @@ public:
     void DoEvent(TEventUI& event);
     void DoPaint(HDC hDC, const RECT& rcPaint);
 
-	LPCTSTR GetNormalImage();
-	void SetNormalImage(LPCTSTR pStrImage);
-	LPCTSTR GetHotImage();
-	void SetHotImage(LPCTSTR pStrImage);
-	LPCTSTR GetFocusedImage();
-	void SetFocusedImage(LPCTSTR pStrImage);
-	LPCTSTR GetDisabledImage();
-	void SetDisabledImage(LPCTSTR pStrImage);
 	void PaintStatusImage(HDC hDC);
 	RECT GetTextPadding() const;
 	void SetTextPadding(RECT rc);
+
+	void SetTipValue(LPCTSTR pStrTipValue);
+	LPCTSTR GetTipValue();
+	void SetTipValueColor(LPCTSTR pStrColor);
+	DWORD GetTipValueColor();
 
     void SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue);
 
@@ -159,11 +157,11 @@ protected:
 	UINT m_chLeadByte; // use when we are in _fAccumulateDBC mode
 
 	UINT m_uButtonState;
-	CDuiString m_sNormalImage;
-	CDuiString m_sHotImage;
-	CDuiString m_sFocusedImage;
-	CDuiString m_sDisabledImage;
-	RECT m_rcTextPadding;
+
+	RECT		m_rcTextPadding;
+	CDuiString	m_sTipValue;
+	DWORD		m_dwTipValueColor;
+
 };
 
 } // namespace DuiLib

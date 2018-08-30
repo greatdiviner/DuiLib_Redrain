@@ -39,15 +39,32 @@ public:
     void SetBkColor2(DWORD dwBackColor);
     DWORD GetBkColor3() const;
     void SetBkColor3(DWORD dwBackColor);
+
     LPCTSTR GetBkImage();
     void SetBkImage(LPCTSTR pStrImage);
+	LPCTSTR GetNormalImage();
+	void SetNormalImage(LPCTSTR pStrImage);
+	LPCTSTR GetHotImage();
+	void SetHotImage(LPCTSTR pStrImage);
+	LPCTSTR GetPushedImage();
+	void SetPushedImage(LPCTSTR pStrImage);
+	LPCTSTR GetFocusedImage();
+	void SetFocusedImage(LPCTSTR pStrImage);
+	LPCTSTR GetDisabledImage();
+	void SetDisabledImage(LPCTSTR pStrImage);
+	LPCTSTR GetForeImage();
+	void SetForeImage(LPCTSTR pStrImage);
+
 	DWORD GetFocusBorderColor() const;
 	void SetFocusBorderColor(DWORD dwBorderColor);
     bool IsColorHSL() const;
     void SetColorHSL(bool bColorHSL);
     SIZE GetBorderRound() const;
     void SetBorderRound(SIZE cxyRound);
-    bool DrawImage(HDC hDC, LPCTSTR pStrImage, LPCTSTR pStrModify = NULL);
+	bool DrawImage(HDC hDC, CImageAttribute& image);
+	//因为经常需要指定绘制的Dest，所以专门增加rcDest参数控制输出位置
+	bool DrawImage(HDC hDC, CImageAttribute& image, const RECT& rcDest);
+	bool DrawImage(HDC hDC, CImageAttribute& image, LPCTSTR pStrModify);
 
 	//边框相关
 	int GetBorderSize() const;
@@ -201,8 +218,15 @@ protected:
     DWORD m_dwBackColor;
     DWORD m_dwBackColor2;
     DWORD m_dwBackColor3;
-    CDuiString m_sBkImage;
-	CDuiString m_sForeImage;
+
+	CImageAttribute m_bkImage;
+	CImageAttribute m_foreImage;
+	CImageAttribute m_normalImage;
+	CImageAttribute m_hotImage;
+	CImageAttribute m_pushedImage;
+	CImageAttribute m_focusedImage;
+	CImageAttribute m_disabledImage;
+
     DWORD m_dwBorderColor;
 	DWORD m_dwFocusBorderColor;
     bool m_bColorHSL;

@@ -31,23 +31,19 @@ namespace DuiLib
 		bool IsNumberOnly() const;
 		int GetWindowStyls() const;
 
-		LPCTSTR GetNormalImage();
-		void SetNormalImage(LPCTSTR pStrImage);
-		LPCTSTR GetHotImage();
-		void SetHotImage(LPCTSTR pStrImage);
-		LPCTSTR GetFocusedImage();
-		void SetFocusedImage(LPCTSTR pStrImage);
-		LPCTSTR GetDisabledImage();
-		void SetDisabledImage(LPCTSTR pStrImage);
 		void SetNativeEditBkColor(DWORD dwBkColor);
 		DWORD GetNativeEditBkColor() const;
+		void SetNativeEditTextColor( LPCTSTR pStrColor );
+		DWORD GetNativeEditTextColor() const;
 
 		void SetSel(long nStartChar, long nEndChar);
 		void SetSelAll();
 		void SetReplaceSel(LPCTSTR lpszReplace);
 
-		void SetTransMode(bool bTrans);  //Add by Redrain 20114.8.24
-		bool GetTransMode() const;
+		void SetTipValue(LPCTSTR pStrTipValue);
+		LPCTSTR GetTipValue();
+		void SetTipValueColor(LPCTSTR pStrColor);
+		DWORD GetTipValueColor();
 
 		void SetPos(RECT rc);
 		void SetVisible(bool bVisible = true);
@@ -67,13 +63,11 @@ namespace DuiLib
 		bool m_bPasswordMode;
 		TCHAR m_cPasswordChar;
 		UINT m_uButtonState;
-		CDuiString m_sNormalImage;
-		CDuiString m_sHotImage;
-		CDuiString m_sFocusedImage;
-		CDuiString m_sDisabledImage;
+		CDuiString m_sTipValue;
+		DWORD m_dwTipValueColor;
 		DWORD m_dwEditbkColor;
+		DWORD m_dwEditTextColor;
 		int m_iWindowStyls;
-		bool m_bTrans; //Add by Redrain 20114.8.24
 	};
 }
 #endif // __UIEDIT_H__

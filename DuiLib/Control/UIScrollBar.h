@@ -69,15 +69,6 @@ namespace DuiLib
 		LPCTSTR GetRailDisabledImage();
 		void SetRailDisabledImage(LPCTSTR pStrImage);
 
-		LPCTSTR GetBkNormalImage();
-		void SetBkNormalImage(LPCTSTR pStrImage);
-		LPCTSTR GetBkHotImage();
-		void SetBkHotImage(LPCTSTR pStrImage);
-		LPCTSTR GetBkPushedImage();
-		void SetBkPushedImage(LPCTSTR pStrImage);
-		LPCTSTR GetBkDisabledImage();
-		void SetBkDisabledImage(LPCTSTR pStrImage);
-
 		void SetPos(RECT rc);
 		void DoEvent(TEventUI& event);
 		void SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue);
@@ -108,40 +99,33 @@ namespace DuiLib
 		int m_nLastScrollOffset;
 		int m_nScrollRepeatDelay;
 
-		CDuiString m_sBkNormalImage;
-		CDuiString m_sBkHotImage;
-		CDuiString m_sBkPushedImage;
-		CDuiString m_sBkDisabledImage;
-
 		bool m_bShowButton1;
 		RECT m_rcButton1;
 		UINT m_uButton1State;
-		CDuiString m_sButton1NormalImage;
-		CDuiString m_sButton1HotImage;
-		CDuiString m_sButton1PushedImage;
-		CDuiString m_sButton1DisabledImage;
+		CImageAttribute m_button1NormalImage;
+		CImageAttribute m_button1HotImage;
+		CImageAttribute m_button1PushedImage;
+		CImageAttribute m_button1DisabledImage;
 
 		bool m_bShowButton2;
 		RECT m_rcButton2;
 		UINT m_uButton2State;
-		CDuiString m_sButton2NormalImage;
-		CDuiString m_sButton2HotImage;
-		CDuiString m_sButton2PushedImage;
-		CDuiString m_sButton2DisabledImage;
+		CImageAttribute m_button2NormalImage;
+		CImageAttribute m_button2HotImage;
+		CImageAttribute m_button2PushedImage;
+		CImageAttribute m_button2DisabledImage;
 
 		RECT m_rcThumb;
 		UINT m_uThumbState;
-		CDuiString m_sThumbNormalImage;
-		CDuiString m_sThumbHotImage;
-		CDuiString m_sThumbPushedImage;
-		CDuiString m_sThumbDisabledImage;
+		CImageAttribute m_thumbNormalImage;
+		CImageAttribute m_thumbHotImage;
+		CImageAttribute m_thumbPushedImage;
+		CImageAttribute m_thumbDisabledImage;
 
-		CDuiString m_sRailNormalImage;
-		CDuiString m_sRailHotImage;
-		CDuiString m_sRailPushedImage;
-		CDuiString m_sRailDisabledImage;
-
-		CDuiString m_sImageModify;
+		CImageAttribute m_railNormalImage;
+		CImageAttribute m_railHotImage;
+		CImageAttribute m_railPushedImage;
+		CImageAttribute m_railDisabledImage;
 	};
 }
 

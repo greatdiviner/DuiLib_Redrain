@@ -49,6 +49,7 @@ public:
     void DoEvent(TEventUI& event);
     void SetVisible(bool bVisible = true);
     void SetInternVisible(bool bVisible = true);
+	void SetEnabled(bool bEnabled);
     void SetMouseEnabled(bool bEnable = true);
 
     virtual RECT GetInset() const;
@@ -86,6 +87,8 @@ public:
     virtual SIZE GetScrollPos() const;
     virtual SIZE GetScrollRange() const;
     virtual void SetScrollPos(SIZE szPos);
+	virtual void SetScrollStepSize(int nSize);
+	virtual int GetScrollStepSize() const;
     virtual void LineUp();
     virtual void LineDown();
     virtual void PageUp();
@@ -114,6 +117,7 @@ protected:
     bool m_bDelayedDestroy;
     bool m_bMouseChildEnabled;
     bool m_bScrollProcess; // ∑¿÷πSetPos—≠ª∑µ˜”√
+	int	 m_nScrollStepSize;
 
     CScrollBarUI* m_pVerticalScrollBar;
     CScrollBarUI* m_pHorizontalScrollBar;

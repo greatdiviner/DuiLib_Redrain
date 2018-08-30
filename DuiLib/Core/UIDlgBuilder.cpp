@@ -1,4 +1,5 @@
 #include "StdAfx.h"
+#include "Utils/ThirdParty.h"
 
 namespace DuiLib {
 
@@ -10,31 +11,46 @@ CDialogBuilder::CDialogBuilder() : m_pCallback(NULL), m_pstrtype(NULL)
 CControlUI* CDialogBuilder::Create(STRINGorID xml, LPCTSTR type, IDialogBuilderCallback* pCallback, 
                                    CPaintManagerUI* pManager, CControlUI* pParent)
 {
+	BYTE* pByte = NULL;
+	DWORD dwSize = 0;
+
 	//资源ID为0-65535，两个字节；字符串指针为4个字节
 	//字符串以<开头认为是XML字符串，否则认为是XML文件
 
-    if( HIWORD(xml.m_lpstr) != NULL ) {
-        if( *(xml.m_lpstr) == _T('<') ) {
+    if( HIWORD(xml.m_lpstr) != NULL ) 
+	{
+        if( *(xml.m_lpstr) == _T('<') ) 
+		{
             if( !m_xml.Load(xml.m_lpstr) ) return NULL;
         }
-        else {
-            if( !m_xml.LoadFromFile(xml.m_lpstr) ) return NULL;
+        else 
+		{
+			if (CPaintManagerUI::GetResourceZip().IsEmpty())
+			{
+				pByte = ThirdParty::LoadFromFile(xml.m_lpstr, dwSize);
+			}
+			else
+			{
+				pByte = ThirdParty::LoadFromZip(xml.m_lpstr, dwSize);
+			}
         }
     }
-    else {
-        HRSRC hResource = ::FindResource(CPaintManagerUI::GetResourceDll(), xml.m_lpstr, type);
-        if( hResource == NULL ) return NULL;
-        HGLOBAL hGlobal = ::LoadResource(CPaintManagerUI::GetResourceDll(), hResource);
-        if( hGlobal == NULL ) {
-            FreeResource(hResource);
-            return NULL;
-        }
+    else 
+	{
+		pByte = ThirdParty::LoadFromResource(xml.m_lpstr, type, dwSize);
 
-        m_pCallback = pCallback;
-        if( !m_xml.LoadFromMem((BYTE*)::LockResource(hGlobal), ::SizeofResource(CPaintManagerUI::GetResourceDll(), hResource) )) return NULL;
-        ::FreeResource(hResource);
-        m_pstrtype = type;
+		m_pCallback = pCallback;
+		m_pstrtype = type;
     }
+
+	if (pByte == NULL)
+		return NULL;
+
+	bool ret = m_xml.LoadFromMem(pByte, dwSize);
+	delete[] pByte;
+
+	if (!ret)
+		return NULL;
 
     return Create(pCallback, pManager, pParent);
 }
@@ -178,15 +194,24 @@ CControlUI* CDialogBuilder::Create(IDialogBuilderCallback* pCallback, CPaintMana
                         int cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr); 
                         pManager->SetMaxInfo(cx, cy);
                     }
-                    else if( _tcscmp(pstrName, _T("showdirty")) == 0 ) {
-                        pManager->SetShowUpdateRect(_tcscmp(pstrValue, _T("true")) == 0);
-                    } 
                     else if( _tcscmp(pstrName, _T("alpha")) == 0 ) {
                         pManager->SetTransparent(_ttoi(pstrValue));
                     } 
                     else if( _tcscmp(pstrName, _T("bktrans")) == 0 ) {
-                        pManager->SetBackgroundTransparent(_tcscmp(pstrValue, _T("true")) == 0);
-                    } 
+                        pManager->SetUseLayeredWindow(_tcscmp(pstrValue, _T("true")) == 0);
+                    }
+					else if (_tcscmp(pstrName, _T("gdiplustext")) == 0) {
+						pManager->SetUseGdiplusText(_tcscmp(pstrValue, _T("true")) == 0);
+					}
+					else if (_tcscmp(pstrName, _T("richeditcorner")) == 0) {
+						RECT rcRichEdit = { 0 };
+						LPTSTR pstr = NULL;
+						rcRichEdit.left = _tcstol(pstrValue, &pstr, 10);  ASSERT(pstr);
+						rcRichEdit.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);
+						rcRichEdit.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);
+						rcRichEdit.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);
+						pManager->SetRichEditCorner(rcRichEdit);
+					}
                     else if( _tcscmp(pstrName, _T("disabledfontcolor")) == 0 ) {
                         if( *pstrValue == _T('#')) pstrValue = ::CharNext(pstrValue);
                         LPTSTR pstr = NULL;
@@ -217,6 +242,42 @@ CControlUI* CDialogBuilder::Create(IDialogBuilderCallback* pCallback, CPaintMana
                         DWORD clrColor = _tcstoul(pstrValue, &pstr, 16);
                         pManager->SetDefaultSelectedBkColor(clrColor);
                     } 
+					else if( _tcscmp(pstrName, _T("shadowsize")) == 0 ) {
+						pManager->GetShadow()->SetSize(_ttoi(pstrValue));
+					}
+					else if( _tcscmp(pstrName, _T("shadowsharpness")) == 0 ) {
+						pManager->GetShadow()->SetSharpness(_ttoi(pstrValue));
+					}
+					else if( _tcscmp(pstrName, _T("shadowdarkness")) == 0 ) {
+						pManager->GetShadow()->SetDarkness(_ttoi(pstrValue));
+					}
+					else if( _tcscmp(pstrName, _T("shadowposition")) == 0 ) {
+						LPTSTR pstr = NULL;
+						int cx = _tcstol(pstrValue, &pstr, 10);  ASSERT(pstr);    
+						int cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr); 
+						pManager->GetShadow()->SetPosition(cx, cy);
+					}
+					else if( _tcscmp(pstrName, _T("shadowcolor")) == 0 ) {
+						if( *pstrValue == _T('#')) pstrValue = ::CharNext(pstrValue);
+						LPTSTR pstr = NULL;
+						DWORD clrColor = _tcstoul(pstrValue, &pstr, 16);
+						pManager->GetShadow()->SetColor(clrColor);
+					}
+					else if( _tcscmp(pstrName, _T("shadowcorner")) == 0 ) {
+						RECT rcCorner = { 0 };
+						LPTSTR pstr = NULL;
+						rcCorner.left = _tcstol(pstrValue, &pstr, 10);  ASSERT(pstr);    
+						rcCorner.top = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);    
+						rcCorner.right = _tcstol(pstr + 1, &pstr, 10);  ASSERT(pstr);    
+						rcCorner.bottom = _tcstol(pstr + 1, &pstr, 10); ASSERT(pstr);    
+						pManager->GetShadow()->SetShadowCorner(rcCorner);
+					}
+					else if( _tcscmp(pstrName, _T("shadowimage")) == 0 ) {
+						pManager->GetShadow()->SetImage(pstrValue);
+					}
+					else if( _tcscmp(pstrName, _T("showshadow")) == 0 ) {
+						pManager->GetShadow()->ShowShadow(_tcscmp(pstrValue, _T("true")) == 0);
+					} 
                 }
             }
         }
@@ -346,12 +407,12 @@ CControlUI* CDialogBuilder::_Parse(CMarkupNode* pRoot, CControlUI* pParent, CPai
             case 7:
                 if( _tcscmp(pstrClass, DUI_CTR_CONTROL) == 0 )                pControl = new CControlUI;
                 else if( _tcscmp(pstrClass, DUI_CTR_ACTIVEX) == 0 )           pControl = new CActiveXUI;
+				else if( _tcscmp(pstrClass, DUI_CTR_GIFANIM) == 0 )           pControl = new CGifAnimUI;
                 break;
             case 8:
                 if( _tcscmp(pstrClass, DUI_CTR_PROGRESS) == 0 )               pControl = new CProgressUI;
                 else if( _tcscmp(pstrClass, DUI_CTR_RICHEDIT) == 0 )          pControl = new CRichEditUI;
 				else if( _tcscmp(pstrClass, DUI_CTR_CHECKBOX) == 0 )		  pControl = new CCheckBoxUI;
-				else if( _tcscmp(pstrClass, DUI_CTR_COMBOBOX) == 0 )		  pControl = new CComboBoxUI;
 				else if( _tcscmp(pstrClass, DUI_CTR_DATETIME) == 0 )		  pControl = new CDateTimeUI;
 				else if( _tcscmp(pstrClass, DUI_CTR_TREEVIEW) == 0 )		  pControl = new CTreeViewUI;
                 break;

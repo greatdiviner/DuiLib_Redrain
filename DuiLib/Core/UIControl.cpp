@@ -150,15 +150,81 @@ void CControlUI::SetBkColor3(DWORD dwBackColor)
 
 LPCTSTR CControlUI::GetBkImage()
 {
-    return m_sBkImage;
+    return m_bkImage.GetAttributeString();
 }
 
 void CControlUI::SetBkImage(LPCTSTR pStrImage)
 {
-    if( m_sBkImage == pStrImage ) return;
+    if( m_bkImage.GetAttributeString() == pStrImage ) return;
 
-    m_sBkImage = pStrImage;
+    m_bkImage.SetAttributeString(pStrImage);
     Invalidate();
+}
+
+LPCTSTR CControlUI::GetNormalImage()
+{
+	return m_normalImage.GetAttributeString();
+}
+
+void CControlUI::SetNormalImage(LPCTSTR pStrImage)
+{
+	m_normalImage.SetAttributeString(pStrImage);
+	Invalidate();
+}
+
+LPCTSTR CControlUI::GetHotImage()
+{
+	return m_hotImage.GetAttributeString();
+}
+
+void CControlUI::SetHotImage(LPCTSTR pStrImage)
+{
+	m_hotImage.SetAttributeString(pStrImage);
+	Invalidate();
+}
+
+LPCTSTR CControlUI::GetPushedImage()
+{
+	return m_pushedImage.GetAttributeString();
+}
+
+void CControlUI::SetPushedImage(LPCTSTR pStrImage)
+{
+	m_pushedImage.SetAttributeString(pStrImage);
+	Invalidate();
+}
+
+LPCTSTR CControlUI::GetFocusedImage()
+{
+	return m_focusedImage.GetAttributeString();
+}
+
+void CControlUI::SetFocusedImage(LPCTSTR pStrImage)
+{
+	m_focusedImage.SetAttributeString(pStrImage);
+	Invalidate();
+}
+
+LPCTSTR CControlUI::GetDisabledImage()
+{
+	return m_disabledImage.GetAttributeString();
+}
+
+void CControlUI::SetDisabledImage(LPCTSTR pStrImage)
+{
+	m_disabledImage.SetAttributeString(pStrImage);
+	Invalidate();
+}
+
+LPCTSTR CControlUI::GetForeImage()
+{
+	return m_foreImage.GetAttributeString();
+}
+
+void CControlUI::SetForeImage(LPCTSTR pStrImage)
+{
+	m_foreImage.SetAttributeString(pStrImage);
+	Invalidate();
 }
 
 DWORD CControlUI::GetBorderColor() const
@@ -230,9 +296,40 @@ void CControlUI::SetBorderRound(SIZE cxyRound)
     Invalidate();
 }
 
-bool CControlUI::DrawImage(HDC hDC, LPCTSTR pStrImage, LPCTSTR pStrModify)
+bool CControlUI::DrawImage(HDC hDC, CImageAttribute& image)
 {
-    return CRenderEngine::DrawImageString(hDC, m_pManager, m_rcItem, m_rcPaint, pStrImage, pStrModify);
+	if (!image.LoadImage(m_pManager))
+		return false;
+
+	return CRenderEngine::DrawImage(hDC, m_pManager, m_rcItem, m_rcPaint, image);
+}
+
+bool CControlUI::DrawImage(HDC hDC, CImageAttribute& image, LPCTSTR pStrModify)
+{
+	if (!image.LoadImage(m_pManager))
+		return false;
+
+	if (pStrModify != NULL)
+	{
+		CImageAttribute modifyImage = image;
+		modifyImage.ModifyAttribute(pStrModify);
+		return CRenderEngine::DrawImage(hDC, m_pManager, m_rcItem, m_rcPaint, modifyImage);
+	}
+	return CRenderEngine::DrawImage(hDC, m_pManager, m_rcItem, m_rcPaint, image);
+}
+
+bool CControlUI::DrawImage(HDC hDC, CImageAttribute& image, const RECT& rcDest)
+{
+	if (!image.LoadImage(m_pManager))
+		return false;
+
+	if (!IsRectEmpty(&rcDest))
+	{
+		CImageAttribute modifyImage = image;
+		modifyImage.SetDest(rcDest);
+		return CRenderEngine::DrawImage(hDC, m_pManager, m_rcItem, m_rcPaint, modifyImage);
+	}
+	return CRenderEngine::DrawImage(hDC, m_pManager, m_rcItem, m_rcPaint, image);
 }
 
 const RECT& CControlUI::GetPos() const
@@ -731,7 +828,14 @@ CDuiString CControlUI::GetVirtualWnd() const
 
 void CControlUI::SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue)
 {
-    if( _tcscmp(pstrName, _T("pos")) == 0 ) {
+	if (_tcscmp(pstrName, _T("bkimage")) == 0) SetBkImage(pstrValue);
+	else if (_tcscmp(pstrName, _T("normalimage")) == 0) SetNormalImage(pstrValue);
+	else if (_tcscmp(pstrName, _T("hotimage")) == 0) SetHotImage(pstrValue);
+	else if (_tcscmp(pstrName, _T("pushedimage")) == 0) SetPushedImage(pstrValue);
+	else if (_tcscmp(pstrName, _T("focusedimage")) == 0) SetFocusedImage(pstrValue);
+	else if (_tcscmp(pstrName, _T("disabledimage")) == 0) SetDisabledImage(pstrValue);
+	else if (_tcscmp(pstrName, _T("foreimage")) == 0) SetForeImage(pstrValue);
+    else if( _tcscmp(pstrName, _T("pos")) == 0 ) {
         RECT rcPos = { 0 };
         LPTSTR pstr = NULL;
         rcPos.left = _tcstol(pstrValue, &pstr, 10);  ASSERT(pstr);    
@@ -826,7 +930,6 @@ void CControlUI::SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue)
         cxyRound.cy = _tcstol(pstr + 1, &pstr, 10);    ASSERT(pstr);     
         SetBorderRound(cxyRound);
     }
-    else if( _tcscmp(pstrName, _T("bkimage")) == 0 ) SetBkImage(pstrValue);
     else if( _tcscmp(pstrName, _T("width")) == 0 ) SetFixedWidth(_ttoi(pstrValue));
     else if( _tcscmp(pstrName, _T("height")) == 0 ) SetFixedHeight(_ttoi(pstrValue));
     else if( _tcscmp(pstrName, _T("minwidth")) == 0 ) SetMinWidth(_ttoi(pstrValue));
@@ -928,8 +1031,7 @@ void CControlUI::PaintBkColor(HDC hDC)
 
 void CControlUI::PaintBkImage(HDC hDC)
 {
-    if( m_sBkImage.IsEmpty() ) return;
-    if( !DrawImage(hDC, (LPCTSTR)m_sBkImage) ) m_sBkImage.Empty();
+    DrawImage(hDC, m_bkImage);
 }
 
 void CControlUI::PaintStatusImage(HDC hDC)

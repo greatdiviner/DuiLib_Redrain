@@ -30,7 +30,7 @@ typedef enum EVENTTYPE_UI
     UIEVENT_BUTTONDOWN,
     UIEVENT_BUTTONUP,
     UIEVENT_RBUTTONDOWN,
-    UIEVENT_DBLCLICK,
+	UIEVENT_DBLCLICK,
     UIEVENT_CONTEXTMENU,
     UIEVENT_SCROLLWHEEL,
     UIEVENT__MOUSEEND,
@@ -185,16 +185,21 @@ public:
     void SetMaxInfo(int cx, int cy);
 	int GetTransparent() const;
     void SetTransparent(int nOpacity);
-    void SetBackgroundTransparent(bool bTrans);
-    bool IsShowUpdateRect() const;
-    void SetShowUpdateRect(bool show);
-	//redrain
-	bool IsBackgroundTransparent();
-	bool ShowCaret(bool bShow);
-	bool SetCaretPos(CRichEditUI* obj, int x, int y);
-	CRichEditUI* GetCurrentCaretObject();
+
+    void SetUseLayeredWindow(bool bTrans);
+	bool IsLayeredWindow();
+	RECT GetRichEditCorner() const;
+	void SetRichEditCorner(const RECT& rcRichedit);
+
+	CRichEditUI* GetCurrentCaretRichEdit();
 	bool CreateCaret(HBITMAP hBmp, int nWidth, int nHeight);
+	bool SetCaretPos(CRichEditUI* obj, int x, int y);
+	bool ShowCaret(bool bShow);
 	void DrawCaret(HDC hDC, const RECT& rcPaint);
+
+	CShadowUI* GetShadow();
+	void SetUseGdiplusText(bool bUse);
+	bool IsUseGdiplusText() const;
 
     static HINSTANCE GetInstance();
     static CDuiString GetInstancePath();
@@ -208,12 +213,18 @@ public:
     static void SetCurrentPath(LPCTSTR pStrPath);
     static void SetResourceDll(HINSTANCE hInst);
     static void SetResourcePath(LPCTSTR pStrPath);
+	//从资源文件中加载zip
+	static void SetResourceZip(UINT nResID);
+	//从内存数据加载zip
 	static void SetResourceZip(LPVOID pVoid, unsigned int len);
+	//从本地zip加载zip
     static void SetResourceZip(LPCTSTR pstrZip, bool bCachedResourceZip = false);
     static void GetHSL(short* H, short* S, short* L);
     static void SetHSL(bool bUseHSL, short H, short S, short L); // H:0~360, S:0~200, L:0~200 
     static void ReloadSkin();
     static bool LoadPlugin(LPCTSTR pstrModuleName);
+	static TImageInfo* LoadImage(STRINGorID bitmap, LPCTSTR type = NULL, DWORD mask = 0);
+	static void FreeImage(const TImageInfo* bitmap);
     static CStdPtrArray* GetPlugins();
 
     bool UseParentResource(CPaintManagerUI* pm);
@@ -316,7 +327,7 @@ public:
     CStdPtrArray* GetSubControlsByClass();
 
     static void MessageLoop();
-    static bool TranslateMessage(const LPMSG pMsg);
+    static bool TranslateMessage(const MSG* pMsg);
 	static void Term();
 
     bool MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT& lRes);
@@ -335,24 +346,31 @@ private:
     static CControlUI* CALLBACK __FindControlsFromClass(CControlUI* pThis, LPVOID pData);
 
 private:
-    HWND m_hWndPaint;
-	int m_nOpacity;
-    HDC m_hDcPaint;
-	LPBYTE m_pBmpBackgroundBits;
-    HDC m_hDcOffscreen;
-    HDC m_hDcBackground;
+    HWND	m_hWndPaint;	//所附加的窗体的句柄
+	int		m_nOpacity;		//窗体透明度
+    HDC		m_hDcPaint;		//窗体DC
+    HDC		m_hDcOffscreen;
     HBITMAP m_hbmpOffscreen;
-    HBITMAP m_hbmpBackground;
-    HWND m_hwndTooltip;
-    TOOLINFO m_ToolTip;
-    bool m_bShowUpdateRect;
+	LPBYTE	m_pBmpOffscreenBits;
 
-	//redrain
-	RECT m_rtCaret;
+	bool	m_bLayeredWindow;
+	RECT	m_rcInvalidate;		// 半透明异形窗体中，保存刷新区域
+	RECT	m_rcRichEditCorner;	// RichEdit控件的范围（距离左上右下窗体的边距），在分层窗体中，用于修复RichEdit的Alpha通道
+	bool	m_bIsRestore;
+	bool	m_bUseGdiplusText;
+
+	CShadowUI m_shadow;
+
+	//光标
+	RECT m_rcCaret;
 	bool m_bCaretActive;
 	bool m_bCaretShowing;
-	CRichEditUI* m_currentCaretObject;
-    //
+	CRichEditUI *m_pCurrentCaretRichedit;
+
+	//
+	HWND	m_hwndTooltip;
+	TOOLINFO m_ToolTip;
+	//
     CControlUI* m_pRoot;
     CControlUI* m_pFocus;
     CControlUI* m_pEventHover;
@@ -370,8 +388,6 @@ private:
     bool m_bFirstLayout;
     bool m_bUpdateNeeded;
     bool m_bFocusNeeded;
-    bool m_bOffscreenPaint;
-    bool m_bAlphaBackground;
     bool m_bMouseTracking;
     bool m_bMouseCapture;
 	bool m_bUsedVirtualWnd;
@@ -400,6 +416,8 @@ private:
     CStdStringPtrMap m_mImageHash;
     CStdStringPtrMap m_DefaultAttrHash;
     //
+	static ULONG_PTR m_gdiplusToken;
+	static Gdiplus::GdiplusStartupInput *m_pGdiplusStartupInput;
     static HINSTANCE m_hInstance;
     static HINSTANCE m_hResourceInstance;
     static CDuiString m_pStrResourcePath;
